@@ -3,9 +3,9 @@ Type: Package
 Title: Transfer Entropy-Informed Difference-in-Differences for Network Analysis
 Version: 0.1.0
 Date: 2024-12-23
-Authors@R: c(person("Avishek", "Bhandari", email = "bavisek@gmail.com", role = c("aut","cre"),
-           comment = c(ORCID = "0000-0000-0000-0000"))
-    )
+Authors@R: person("Avishek", "Bhandari", 
+                  email = "bavisek@gmail.com", 
+                  role = c("aut", "cre", "cph"))
 Description: Implements the Transfer Entropy-informed Difference-in-Differences (TE-DiD) 
     framework for policy evaluation in interconnected systems. The package provides tools 
     for network-based contagion analysis, transfer entropy calculation, and robust causal 

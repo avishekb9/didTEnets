@@ -1,9 +1,9 @@
 # didTEnets
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/username/didTEnets/workflows/R-CMD-check/badge.svg)](https://github.com/username/didTEnets/actions)
+[![R-CMD-check](https://github.com/avishekb9/didTEnets/workflows/R-CMD-check/badge.svg)](https://github.com/avishekb9/didTEnets/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/didTEnets)](https://CRAN.R-project.org/package=didTEnets)
-[![codecov](https://codecov.io/gh/username/didTEnets/branch/main/graph/badge.svg)](https://codecov.io/gh/username/didTEnets)
+[![codecov](https://codecov.io/gh/avishekb9/didTEnets/branch/main/graph/badge.svg)](https://codecov.io/gh/avishekb9/didTEnets)
 <!-- badges: end -->
 
 **Transfer Entropy-Informed Difference-in-Differences for Network Analysis**
@@ -213,6 +213,6 @@ The TE-DiD framework builds on several methodological advances:
 
 If you encounter any issues or have questions:
 
-- 📋 [File an issue](https://github.com/username/didTEnets/issues)
-- 📖 [Read the documentation](https://username.github.io/didTEnets/)
-- 💬 [Start a discussion](https://github.com/username/didTEnets/discussions)
+- 📋 [File an issue](https://github.com/avishekb9/didTEnets/issues)
+- 📖 [Read the documentation](https://avishekb9.github.io/didTEnets/)
+- 💬 [Start a discussion](https://github.com/avishekb9/didTEnets/discussions)

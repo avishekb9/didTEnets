@@ -49,7 +49,7 @@ You can install the development version of didTEnets from GitHub:
 install.packages("devtools")
 
 # Install didTEnets
-devtools::install_github("username/didTEnets")
+devtools::install_github("avishekb9/didTEnets")
 ```
 
 ```{r setup}
