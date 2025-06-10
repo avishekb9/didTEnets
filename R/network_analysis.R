@@ -32,12 +32,8 @@ calculate_network_weights <- function(returns_data,
   # 1. Correlation-based weights
   if ("correlation" %in% weight_types) {
     cor_matrix <- cor(returns_data, use = "complete.obs")
-    w_correlation <- pmax(0, cor_matrix)  # Only positive correlations
-    
-    # Ensure matrix structure
-    if (!is.matrix(w_correlation)) {
-      w_correlation <- as.matrix(w_correlation)
-    }
+    w_correlation <- cor_matrix
+    w_correlation[w_correlation < 0] <- 0  # Only positive correlations
     
     diag(w_correlation) <- 0
     
@@ -111,13 +107,38 @@ calculate_network_weights <- function(returns_data,
     if ("correlation" %in% names(weights_list) && 
         "economic" %in% names(weights_list) && 
         "geographic" %in% names(weights_list)) {
-      w_composite <- 0.5 * weights_list$correlation + 
-                     0.3 * weights_list$economic + 
-                     0.2 * weights_list$geographic
+      # Ensure all matrices have the same dimensions and row/column names
+      corr_mat <- weights_list$correlation
+      econ_mat <- weights_list$economic
+      geo_mat <- weights_list$geographic
+      
+      # Align matrices to common countries
+      common_countries <- intersect(intersect(rownames(corr_mat), rownames(econ_mat)), rownames(geo_mat))
+      if (length(common_countries) >= 2) {
+        corr_mat <- corr_mat[common_countries, common_countries]
+        econ_mat <- econ_mat[common_countries, common_countries]
+        geo_mat <- geo_mat[common_countries, common_countries]
+        
+        w_composite <- 0.5 * corr_mat + 0.3 * econ_mat + 0.2 * geo_mat
+      } else {
+        w_composite <- weights_list$correlation
+      }
     } else if ("correlation" %in% names(weights_list) && 
                "geographic" %in% names(weights_list)) {
-      w_composite <- 0.6 * weights_list$correlation + 
-                     0.4 * weights_list$geographic
+      # Ensure matrices have the same dimensions and row/column names
+      corr_mat <- weights_list$correlation
+      geo_mat <- weights_list$geographic
+      
+      # Align matrices to common countries
+      common_countries <- intersect(rownames(corr_mat), rownames(geo_mat))
+      if (length(common_countries) >= 2) {
+        corr_mat <- corr_mat[common_countries, common_countries]
+        geo_mat <- geo_mat[common_countries, common_countries]
+        
+        w_composite <- 0.6 * corr_mat + 0.4 * geo_mat
+      } else {
+        w_composite <- weights_list$correlation
+      }
     } else if ("correlation" %in% names(weights_list)) {
       w_composite <- weights_list$correlation
     } else {
