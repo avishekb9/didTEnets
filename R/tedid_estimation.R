@@ -166,24 +166,33 @@ estimate_tedid_model <- function(tedid_dataset,
   
   if (method == "plm") {
     # Try PLM estimation with two-way fixed effects
-    tryCatch({
-      model <- plm(formula, 
-                  data = tedid_dataset,
-                  index = c("Country", "YearMonth"),
-                  model = "within",
-                  effect = "twoways")
+    model <- tryCatch({
+      plm_model <- plm(formula, 
+                      data = tedid_dataset,
+                      index = c("Country", "YearMonth"),
+                      model = "within",
+                      effect = "twoways")
       
-      if (robust) {
-        # Add robust standard errors if requested
-        # Note: Implementation would require additional packages like sandwich
-        warning("Robust standard errors not implemented yet")
+      # Check if model is valid (has coefficients)
+      if (is.null(plm_model) || length(coef(plm_model)) == 0) {
+        stop("empty model")
       }
       
-      return(model)
+      plm_model
     }, error = function(e) {
       warning("PLM estimation failed: ", e$message, "\nFalling back to OLS")
-      method <- "lm"
+      NULL
     })
+    
+    if (!is.null(model)) {
+      if (robust) {
+        warning("Robust standard errors not implemented yet")
+      }
+      return(model)
+    } else {
+      # PLM failed, fall back to OLS
+      method <- "lm"
+    }
   }
   
   if (method == "lm") {
@@ -224,15 +233,35 @@ estimate_tedid_model <- function(tedid_dataset,
 extract_tedid_results <- function(model, tedid_dataset = NULL, 
                                  interaction_terms = c("EarlyAdopter:CrisisPeriod")) {
   
-  # Get model summary
-  model_summary <- summary(model)
-  
-  # Extract coefficient table
-  if (inherits(model, "plm")) {
-    coef_table <- model_summary$coefficients
-  } else {
-    coef_table <- summary(model)$coefficients
+  # Validate model object
+  if (is.null(model)) {
+    stop("Model object is NULL")
   }
+  
+  # Get model summary with error handling
+  model_summary <- tryCatch({
+    summary(model)
+  }, error = function(e) {
+    stop("Failed to get model summary: ", e$message)
+  })
+  
+  # Extract coefficient table - handle both PLM and lm objects
+  coef_table <- tryCatch({
+    if (inherits(model, "plm")) {
+      model_summary$coefficients
+    } else if (inherits(model, "lm")) {
+      model_summary$coefficients
+    } else {
+      # Fallback for other model types
+      if (is.list(model_summary) && "coefficients" %in% names(model_summary)) {
+        model_summary$coefficients
+      } else {
+        stop("Unable to extract coefficients from model summary")
+      }
+    }
+  }, error = function(e) {
+    stop("Failed to extract coefficient table: ", e$message)
+  })
   
   # Extract key results
   results <- list(
