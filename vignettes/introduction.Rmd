@@ -1,0 +1,202 @@
+---
+title: "Introduction to didTEnets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to didTEnets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# Introduction to didTEnets
+
+The `didTEnets` package implements the **Transfer Entropy-informed Difference-in-Differences (TE-DiD)** framework for policy evaluation in interconnected systems. This methodology combines network analysis with causal inference to measure policy effects on financial contagion and systemic risk transmission.
+
+## Overview
+
+Traditional difference-in-differences (DiD) approaches often use simple outcome variables like stock returns or volatility, which fail to capture the complex dynamics of systemic risk transmission in interconnected financial markets. The TE-DiD framework addresses this limitation by:
+
+1. **Network-Informed Outcomes**: Using the Network-Informed Contagion Index (NICI) instead of simple returns
+2. **Directed Information Flow**: Measuring transfer entropy to quantify directional risk transmission
+3. **Policy Spillovers**: Accounting for spillover effects through the Network-Informed Policy Intensity (NIPI)
+4. **Crisis Analysis**: Focusing on extreme events through quantile conditioning
+
+## Key Concepts
+
+### Transfer Entropy (TE)
+Transfer entropy measures the directed flow of information between time series, quantifying how much knowing the past of series X reduces uncertainty about the future of series Y, beyond what we already know from Y's own past.
+
+### Network-Informed Contagion Index (NICI)
+NICI serves as the outcome variable in TE-DiD models. It measures the weighted sum of incoming transfer entropy flows to a country, representing how much systemic risk the country is absorbing from its network neighbors.
+
+### Network-Informed Policy Intensity (NIPI)
+NIPI serves as the treatment variable, combining direct policy effects with spillover effects from neighboring countries in the network.
+
+## Installation
+
+You can install the development version of didTEnets from GitHub:
+
+```{r eval=FALSE}
+# Install devtools if you haven't already
+install.packages("devtools")
+
+# Install didTEnets
+devtools::install_github("username/didTEnets")
+```
+
+```{r setup}
+library(didTEnets)
+library(ggplot2)
+library(dplyr)
+```
+
+## Quick Start Example
+
+Here's a basic example using the package's sample data:
+
+```{r eval=FALSE}
+# Load sample data
+data(sample_financial_returns)
+data(sample_policy_data)
+
+# Quick analysis with built-in sample data
+tickers <- c("^GSPC" = "USA", "^FTSE" = "GBR", "^GDAXI" = "DEU", 
+             "^FCHI" = "FRA", "^N225" = "JPN", "^AXJO" = "AUS")
+
+# Run complete TE-DiD analysis
+results <- run_complete_tedid_analysis(
+  tickers = tickers,
+  start_date = "2019-01-01",
+  end_date = "2021-12-31",
+  create_plots = TRUE,
+  verbose = TRUE
+)
+
+# View main results
+summary(results$tedid$main_model)
+```
+
+## Step-by-Step Workflow
+
+### 1. Data Acquisition
+
+```{r eval=FALSE}
+# Define financial market tickers
+tickers <- c("^GSPC" = "USA", "^FTSE" = "GBR", "^GDAXI" = "DEU")
+
+# Download financial data
+financial_data <- download_financial_data(tickers, "2019-01-01", "2021-12-31")
+```
+
+### 2. Policy Data Creation
+
+```{r eval=FALSE}
+# Create realistic policy data
+policy_data <- create_policy_data(financial_data$countries, "2019-01-01", "2021-12-31")
+```
+
+### 3. Network Weights Calculation
+
+```{r eval=FALSE}
+# Calculate different types of network weights
+network_weights <- calculate_network_weights(financial_data$returns)
+```
+
+### 4. Transfer Entropy Analysis
+
+```{r eval=FALSE}
+# Define periods for analysis
+crisis_start <- as.Date("2020-03-01")
+crisis_end <- as.Date("2020-12-31")
+
+period_breaks <- list(
+  "Pre_Crisis" = which(index(financial_data$returns) < crisis_start),
+  "Crisis" = which(index(financial_data$returns) >= crisis_start & 
+                  index(financial_data$returns) <= crisis_end),
+  "Post_Crisis" = which(index(financial_data$returns) > crisis_end)
+)
+
+# Calculate TE matrices
+te_matrices <- calculate_te_matrices_by_period(financial_data$returns, period_breaks)
+```
+
+### 5. NICI and NIPI Construction
+
+```{r eval=FALSE}
+# Calculate outcome variable (NICI)
+nici_data <- calculate_nici(te_matrices, network_weights)
+
+# Prepare monthly policy data
+monthly_policy <- policy_data %>%
+  mutate(year_month = format(Date, "%Y-%m")) %>%
+  group_by(CountryCode, year_month) %>%
+  summarise(StringencyIndex = mean(StringencyIndex, na.rm = TRUE), .groups = "drop")
+
+# Calculate treatment variable (NIPI)
+nipi_data <- calculate_nipi(monthly_policy, network_weights)
+```
+
+### 6. TE-DiD Model Estimation
+
+```{r eval=FALSE}
+# Prepare dataset for TE-DiD estimation
+tedid_dataset <- prepare_tedid_dataset(nici_data, nipi_data, treatment_groups)
+
+# Estimate TE-DiD model
+tedid_model <- estimate_tedid_model(tedid_dataset)
+
+# Extract and interpret results
+results <- extract_tedid_results(tedid_model, tedid_dataset)
+```
+
+### 7. Visualization
+
+```{r eval=FALSE}
+# Create network comparison plots
+network_plots <- create_network_comparison(te_matrices)
+
+# Create TE-DiD result visualizations
+tedid_plots <- visualize_tedid_results(tedid_dataset)
+
+# Display plots
+print(tedid_plots$timeseries)
+print(tedid_plots$difference)
+```
+
+## Interpreting Results
+
+The key output of a TE-DiD analysis is the interaction coefficient β₁ from the model:
+
+**IncomingFlow_{it} = β₀ + β₁ · EarlyAdopter_i × CrisisPeriod_t + α_i + γ_t + ε_{it}**
+
+Where:
+- **β₁ < 0**: Early policy adoption **reduced** incoming financial contagion
+- **β₁ > 0**: Early policy adoption **increased** incoming financial contagion (possibly due to uncertainty)
+- **β₁ ≈ 0**: No significant policy effect
+
+## Advantages over Traditional DiD
+
+1. **Network-Aware**: Captures interconnectedness and spillover effects
+2. **Crisis-Focused**: Uses quantile conditioning to focus on extreme events
+3. **Directional**: Measures directed information flows rather than simple correlations
+4. **Policy-Relevant**: Provides clear implications for crisis management
+
+## Next Steps
+
+- See the **Network Analysis** vignette for detailed network construction methods
+- See the **Policy Evaluation** vignette for advanced TE-DiD specifications
+- Check the **Case Studies** vignette for real-world applications
+
+## References
+
+1. Schreiber, T. (2000). Measuring information transfer. *Physical Review Letters*, 85(2), 461.
+2. Angrist, J. D., & Pischke, J. S. (2009). *Mostly harmless econometrics: An empiricist's companion*. Princeton University Press.
+3. Hale, T., Angrist, N., Goldszmidt, R., et al. (2021). A global panel database of pandemic policies (Oxford COVID-19 Government Response Tracker). *Nature Human Behaviour*, 5, 529-538.

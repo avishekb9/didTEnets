@@ -1,0 +1,53 @@
+Package: didTEnets
+Type: Package
+Title: Transfer Entropy-Informed Difference-in-Differences for Network Analysis
+Version: 0.1.0
+Date: 2024-12-23
+Authors@R: c(person("Avishek", "Bhandari", email = "bavisek@gmail.com", role = c("aut","cre"),
+           comment = c(ORCID = "0000-0000-0000-0000"))
+    )
+Description: Implements the Transfer Entropy-informed Difference-in-Differences (TE-DiD) 
+    framework for policy evaluation in interconnected systems. The package provides tools 
+    for network-based contagion analysis, transfer entropy calculation, and robust causal 
+    inference using difference-in-differences methodology. Key features include financial 
+    network analysis, crisis contagion measurement, policy impact assessment, and 
+    comprehensive visualization tools for network evolution across different time periods.
+License: MIT + file LICENSE
+URL: https://github.com/avishekb9/didTEnets, https://avisek.github.io/didTEnets
+BugReports: https://github.com/avishekb9/didTEnets/issues
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.0.0)
+Imports:
+    dplyr (>= 1.0.0),
+    ggplot2 (>= 3.3.0),
+    igraph (>= 1.2.0),
+    ggraph (>= 2.0.0),
+    tidygraph (>= 1.2.0),
+    lubridate (>= 1.7.0),
+    plm (>= 2.4.0),
+    quantmod (>= 0.4.0),
+    xts (>= 0.12.0),
+    zoo (>= 1.8.0),
+    tidyr (>= 1.1.0),
+    viridis (>= 0.6.0),
+    gridExtra (>= 2.3),
+    corrplot (>= 0.90),
+    stats,
+    utils,
+    methods,
+    grDevices,
+    graphics
+Suggests:
+    testthat (>= 3.0.0),
+    knitr (>= 1.30),
+    rmarkdown (>= 2.10),
+    devtools (>= 2.4.0),
+    usethis (>= 2.0.0),
+    pkgdown (>= 1.6.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+

@@ -1,0 +1,105 @@
+url: https://avisek.github.io/didTEnets
+template:
+  bootstrap: 5
+
+home:
+  title: didTEnets - Transfer Entropy-informed Difference-in-Differences
+  description: >
+    A comprehensive R package for conducting Transfer Entropy-informed 
+    Difference-in-Differences (TE-DiD) analysis with network effects.
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, tutorials, news]
+    right: [search, github]
+  components:
+    home:
+      icon: fas fa-home fa-lg
+      href: index.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    articles:
+      text: Articles
+      menu:
+      - text: Introduction to didTEnets
+        href: articles/introduction.html
+      - text: Instrument Creation Guide
+        href: articles/instrument_creation.html
+      - text: Transfer Entropy Analysis
+        href: articles/transfer_entropy_analysis.html
+      - text: Network Visualization
+        href: articles/network_visualization.html
+
+reference:
+- title: Package Overview
+  desc: Package-level documentation
+  contents:
+  - didTEnets-package
+
+- title: Data Acquisition
+  desc: Functions for downloading and preparing financial and policy data
+  contents:
+  - download_financial_data
+  - create_policy_data
+
+- title: Transfer Entropy Analysis
+  desc: Core transfer entropy calculation and analysis functions
+  contents:
+  - calculate_enhanced_transfer_entropy
+  - calculate_te_matrices_by_period
+
+- title: Network Analysis
+  desc: Network weight calculation and network statistics
+  contents:
+  - calculate_network_weights
+  - calculate_network_statistics
+
+- title: Policy Impact Measures
+  desc: Calculate NICI and NIPI for TE-DiD analysis
+  contents:
+  - calculate_nici
+  - calculate_nipi
+
+- title: Econometric Models
+  desc: TE-DiD model estimation and data preparation
+  contents:
+  - estimate_tedid_model
+  - prepare_tedid_dataset
+  - extract_tedid_results
+
+- title: Visualization
+  desc: Create comprehensive plots and network visualizations
+  contents:
+  - visualize_tedid_results
+  - create_te_heatmaps
+  - create_network_comparison
+
+- title: Complete Analysis
+  desc: Wrapper functions for end-to-end analysis
+  contents:
+  - run_complete_tedid_analysis
+
+- title: Sample Data
+  desc: Example datasets for testing and demonstration
+  contents:
+  - sample_financial_returns
+  - sample_policy_data
+  - sample_tedid_results
+
+authors:
+  Avisek Choudhury:
+    href: https://github.com/avisek
+
+development:
+  mode: auto
+
+news:
+  releases:
+  - text: "Version 0.1.0"
+    href: news/index.html
+
+footer:
+  structure:
+    left: developed_by
+    right: built_with

@@ -1,0 +1,378 @@
+---
+title: "Network Analysis with didTEnets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Network Analysis with didTEnets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/",
+  out.width = "100%"
+)
+```
+
+# Network Analysis with didTEnets
+
+This vignette demonstrates the network analysis capabilities of the `didTEnets` package, focusing on transfer entropy calculation, network weight construction, and network evolution visualization.
+
+```{r setup}
+library(didTEnets)
+library(ggplot2)
+library(dplyr)
+library(igraph)
+library(ggraph)
+```
+
+## Understanding Transfer Entropy
+
+Transfer entropy (TE) is a model-free measure of directed information flow between time series. Unlike correlation, which is symmetric, transfer entropy captures the direction of information flow.
+
+### Basic Transfer Entropy Calculation
+
+```{r eval=FALSE}
+# Generate sample data with known relationship
+set.seed(123)
+n <- 200
+source <- rnorm(n)
+target <- 0.3 * source + rnorm(n, 0, 0.8)  # target influenced by source
+
+# Calculate transfer entropy in both directions
+te_source_to_target <- calculate_enhanced_transfer_entropy(source, target)
+te_target_to_source <- calculate_enhanced_transfer_entropy(target, source)
+
+cat("TE from source to target:", round(te_source_to_target, 4), "\n")
+cat("TE from target to source:", round(te_target_to_source, 4), "\n")
+```
+
+The enhanced transfer entropy function in `didTEnets` includes several innovations:
+
+1. **Quantile Conditioning**: Focus on extreme events (crisis periods)
+2. **Volatility Scaling**: Incorporate market volatility for realistic magnitudes
+3. **Robust Handling**: Deal with missing data and insufficient observations
+
+### Quantile Conditioning for Crisis Analysis
+
+```{r eval=FALSE}
+# Example with crisis periods
+set.seed(456)
+n <- 300
+normal_period <- rnorm(200, 0, 1)
+crisis_period <- rnorm(100, -2, 2)  # More volatile, negative bias
+source_series <- c(normal_period, crisis_period)
+target_series <- c(rnorm(200, 0, 1), 0.6 * crisis_period + rnorm(100, 0, 0.5))
+
+# Calculate TE focusing on crisis events (bottom 10% quantile)
+te_crisis <- calculate_enhanced_transfer_entropy(source_series, target_series, 
+                                               quantile_threshold = 0.1)
+
+# Calculate TE focusing on normal periods (50th percentile)
+te_normal <- calculate_enhanced_transfer_entropy(source_series, target_series, 
+                                               quantile_threshold = 0.5)
+
+cat("TE during crisis events:", round(te_crisis, 4), "\n")
+cat("TE during normal periods:", round(te_normal, 4), "\n")
+```
+
+## Network Weight Construction
+
+Network weights determine how policy spillovers and contagion effects propagate through the financial system. The `didTEnets` package supports multiple weight types:
+
+### 1. Correlation-Based Weights
+
+```{r eval=FALSE}
+# Using sample data
+data(sample_financial_returns)
+
+# Calculate correlation-based weights
+cor_weights <- calculate_network_weights(sample_financial_returns, "correlation")
+
+# Examine the weight matrix
+print(round(cor_weights$correlation, 3))
+```
+
+Correlation-based weights capture co-movement patterns between markets. Higher correlations indicate stronger connections.
+
+### 2. Geographic Weights
+
+```{r eval=FALSE}
+# Calculate geographic weights with custom regions
+custom_regions <- list(
+  europe = c("GBR", "DEU", "FRA"),
+  asia_pacific = c("JPN", "AUS"),
+  americas = c("USA")
+)
+
+geo_weights <- calculate_network_weights(sample_financial_returns, "geographic",
+                                       geographic_groups = custom_regions)
+
+print(round(geo_weights$geographic, 3))
+```
+
+Geographic weights assume that countries in the same region have stronger connections due to trade, cultural, and institutional similarities.
+
+### 3. Economic Similarity Weights
+
+```{r eval=FALSE}
+# Calculate economic similarity weights (based on volatility patterns)
+econ_weights <- calculate_network_weights(sample_financial_returns, "economic")
+
+print(round(econ_weights$economic, 3))
+```
+
+Economic similarity weights use market volatility patterns as a proxy for economic development level and market maturity.
+
+### 4. Composite Weights
+
+```{r eval=FALSE}
+# Calculate all weight types and create composite
+all_weights <- calculate_network_weights(sample_financial_returns)
+
+# The composite weights combine multiple sources of information
+print(round(all_weights$composite, 3))
+```
+
+## Transfer Entropy Matrix Calculation
+
+For network analysis, we calculate transfer entropy between all pairs of countries for different time periods and market conditions:
+
+```{r eval=FALSE}
+# Define analysis periods
+returns_data <- sample_financial_returns
+n_obs <- nrow(returns_data)
+
+period_breaks <- list(
+  "Pre_Crisis" = 1:floor(n_obs * 0.4),
+  "Crisis" = floor(n_obs * 0.4):floor(n_obs * 0.7),
+  "Post_Crisis" = floor(n_obs * 0.7):n_obs
+)
+
+# Calculate TE matrices for different periods and quantiles
+te_matrices <- calculate_te_matrices_by_period(returns_data, period_breaks, 
+                                             quantiles = c(0.1, 0.5, 0.9))
+
+# Examine the structure
+names(te_matrices)
+```
+
+Each matrix shows directed information flows between countries:
+- **Rows**: Source countries (information senders)
+- **Columns**: Target countries (information receivers)
+- **Values**: Transfer entropy strength
+
+## Network Statistics and Evolution
+
+### Basic Network Statistics
+
+```{r eval=FALSE}
+# Calculate comprehensive network statistics
+network_stats <- calculate_network_statistics(te_matrices)
+
+# View summary statistics
+print(network_stats)
+```
+
+Key network statistics include:
+- **Density**: Proportion of possible connections that exist
+- **Transitivity**: Clustering coefficient (A→B→C implies A→C)
+- **Average Strength**: Mean TE flow strength
+- **Max TE**: Strongest individual connection
+
+### Contagion Analysis
+
+```{r eval=FALSE}
+# Analyze network evolution to establish contagion
+crisis_stats <- network_stats %>%
+  filter(Quantile == "Q0.1") %>%  # Focus on crisis quantile
+  arrange(Period)
+
+if (nrow(crisis_stats) >= 2) {
+  pre_crisis <- crisis_stats[crisis_stats$Period == "Pre_Crisis", ]
+  crisis <- crisis_stats[crisis_stats$Period == "Crisis", ]
+  
+  if (nrow(pre_crisis) > 0 && nrow(crisis) > 0) {
+    density_change <- crisis$Density - pre_crisis$Density
+    mean_te_change <- crisis$Mean_TE - pre_crisis$Mean_TE
+    
+    cat("Network density change:", round(density_change, 4), "\n")
+    cat("Mean TE change:", round(mean_te_change, 4), "\n")
+    
+    if (density_change > 0.05 || mean_te_change > 0.01) {
+      cat("✓ CONTAGION ESTABLISHED\n")
+    } else {
+      cat("○ Limited evidence of contagion\n")
+    }
+  }
+}
+```
+
+## Network Visualization
+
+### Network Evolution Plots
+
+```{r eval=FALSE}
+# Create network comparison visualizations
+network_plots <- create_network_comparison(te_matrices, threshold = 0.02)
+
+# Display evolution across periods
+if (length(network_plots) > 0) {
+  print(network_plots$Pre_Crisis)
+  print(network_plots$Crisis)
+  print(network_plots$Post_Crisis)
+}
+```
+
+### Transfer Entropy Heatmaps
+
+```{r eval=FALSE}
+# Create TE heatmaps for different periods
+te_heatmaps <- create_te_heatmaps(te_matrices)
+
+# Display heatmaps
+if (length(te_heatmaps) > 0) {
+  print(te_heatmaps$Pre_Crisis)
+  print(te_heatmaps$Crisis)
+}
+```
+
+### Custom Network Visualization
+
+```{r eval=FALSE}
+# Create custom network plot
+create_custom_network_plot <- function(te_matrix, title = "Financial Network") {
+  # Convert to igraph object
+  g <- graph_from_adjacency_matrix(te_matrix, mode = "directed", 
+                                  weighted = TRUE, diag = FALSE)
+  
+  # Set node attributes
+  V(g)$size <- degree(g, mode = "in") * 5 + 10
+  V(g)$color <- case_when(
+    V(g)$name %in% c("USA", "GBR") ~ "red",
+    V(g)$name %in% c("DEU", "FRA") ~ "blue",
+    TRUE ~ "orange"
+  )
+  
+  # Create plot
+  ggraph(g, layout = "stress") +
+    geom_edge_arc(aes(width = weight, alpha = weight),
+                 arrow = arrow(length = unit(2, "mm")),
+                 color = "gray50") +
+    geom_node_point(aes(size = size, color = color), alpha = 0.8) +
+    geom_node_text(aes(label = name), repel = TRUE, fontface = "bold") +
+    scale_edge_width_continuous(range = c(0.5, 2), guide = "none") +
+    scale_edge_alpha_continuous(range = c(0.3, 0.8), guide = "none") +
+    scale_size_continuous(range = c(5, 15), guide = "none") +
+    scale_color_identity() +
+    labs(title = title) +
+    theme_void()
+}
+
+# Apply to crisis period matrix
+if ("Crisis_Q0.1" %in% names(te_matrices)) {
+  crisis_plot <- create_custom_network_plot(te_matrices$Crisis_Q0.1, 
+                                           "Crisis Period Network")
+  print(crisis_plot)
+}
+```
+
+## Advanced Network Analysis
+
+### Centrality Measures
+
+```{r eval=FALSE}
+# Calculate network centrality measures
+calculate_centrality_measures <- function(te_matrix) {
+  g <- graph_from_adjacency_matrix(te_matrix, mode = "directed", 
+                                  weighted = TRUE, diag = FALSE)
+  
+  centrality_df <- data.frame(
+    Country = V(g)$name,
+    InDegree = degree(g, mode = "in"),
+    OutDegree = degree(g, mode = "out"),
+    InStrength = strength(g, mode = "in"),
+    OutStrength = strength(g, mode = "out"),
+    Betweenness = betweenness(g),
+    PageRank = page_rank(g)$vector
+  )
+  
+  return(centrality_df)
+}
+
+# Apply to crisis matrix
+if ("Crisis_Q0.1" %in% names(te_matrices)) {
+  centrality_measures <- calculate_centrality_measures(te_matrices$Crisis_Q0.1)
+  print(centrality_measures)
+}
+```
+
+### Network Persistence Analysis
+
+```{r eval=FALSE}
+# Analyze which connections persist across periods
+analyze_network_persistence <- function(te_matrices, threshold = 0.05) {
+  # Get crisis period matrices
+  crisis_matrices <- te_matrices[grep("Q0.1", names(te_matrices))]
+  
+  # Binarize matrices based on threshold
+  binary_matrices <- lapply(crisis_matrices, function(x) {
+    (x > threshold) * 1
+  })
+  
+  # Calculate persistence (connections present in all periods)
+  if (length(binary_matrices) >= 2) {
+    persistence_matrix <- Reduce("+", binary_matrices) / length(binary_matrices)
+    
+    # Find highly persistent connections (present in >75% of periods)
+    persistent_connections <- which(persistence_matrix > 0.75, arr.ind = TRUE)
+    
+    if (nrow(persistent_connections) > 0) {
+      cat("Highly persistent connections:\n")
+      for (i in 1:nrow(persistent_connections)) {
+        from <- rownames(persistence_matrix)[persistent_connections[i, 1]]
+        to <- colnames(persistence_matrix)[persistent_connections[i, 2]]
+        cat(paste(from, "→", to), "\n")
+      }
+    }
+  }
+}
+
+# Analyze persistence
+analyze_network_persistence(te_matrices)
+```
+
+## Best Practices
+
+### 1. Data Quality
+- Ensure sufficient observations for reliable TE estimation (minimum 30-50 per period)
+- Handle missing data appropriately
+- Check for structural breaks in the data
+
+### 2. Parameter Selection
+- Choose quantile thresholds based on research question (0.1 for crisis, 0.5 for normal)
+- Set appropriate TE thresholds for network visualization (typically 0.01-0.05)
+- Consider lag structure for TE calculation
+
+### 3. Interpretation
+- Remember that TE measures information flow, not causation
+- Consider economic mechanisms behind network connections
+- Validate results with known financial relationships
+
+### 4. Computational Considerations
+- TE calculation can be computationally intensive for large networks
+- Consider parallel processing for multiple periods/quantiles
+- Cache results for repeated analysis
+
+## Conclusion
+
+The network analysis capabilities of `didTEnets` provide powerful tools for understanding financial contagion and policy transmission mechanisms. By combining transfer entropy with network analysis, researchers can:
+
+1. Identify key transmission channels during crisis periods
+2. Measure the evolution of financial networks over time
+3. Quantify the importance of different countries as sources or receivers of risk
+4. Visualize complex network structures in an intuitive way
+
+These insights are crucial for designing effective policy interventions and understanding systemic risk in interconnected financial systems.
