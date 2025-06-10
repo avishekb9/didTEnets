@@ -37,7 +37,7 @@ You can install the development version of didTEnets from GitHub:
 install.packages("devtools")
 
 # Install didTEnets
-devtools::install_github("username/didTEnets")
+devtools::install_github("avishekb9/didTEnets")
 ```
 
 ## Quick Start
@@ -177,10 +177,10 @@ If you use didTEnets in your research, please cite:
 ```
 @Manual{didTEnets,
   title = {didTEnets: Transfer Entropy-Informed Difference-in-Differences for Network Analysis},
-  author = {Claude AI and Avisek Banerjee},
+  author = {Avishek Bhandari},
   year = {2024},
   note = {R package version 0.1.0},
-  url = {https://github.com/username/didTEnets}
+  url = {https://github.com/avishekb9/didTEnets}
 }
 ```
 
