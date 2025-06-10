@@ -24,12 +24,8 @@ navbar:
       menu:
       - text: Introduction to didTEnets
         href: articles/introduction.html
-      - text: Instrument Creation Guide
-        href: articles/instrument_creation.html
-      - text: Transfer Entropy Analysis
-        href: articles/transfer_entropy_analysis.html
-      - text: Network Visualization
-        href: articles/network_visualization.html
+      - text: Network Analysis with didTEnets
+        href: articles/network_analysis.html
 
 reference:
 - title: Package Overview
