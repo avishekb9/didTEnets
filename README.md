@@ -142,9 +142,9 @@ The TE-DiD framework is particularly useful for:
 
 ## Documentation
 
-- [Introduction to didTEnets](vignettes/introduction.html) - Basic concepts and workflow
-- [Network Analysis](vignettes/network_analysis.html) - Detailed network construction methods
-- [Function Reference](reference/index.html) - Complete function documentation
+- [Introduction to didTEnets](https://avishekb9.github.io/didTEnets/articles/introduction.html) - Basic concepts and workflow
+- [Network Analysis](https://avishekb9.github.io/didTEnets/articles/network_analysis.html) - Detailed network construction methods
+- [Function Reference](https://avishekb9.github.io/didTEnets/reference/index.html) - Complete function documentation
 
 ## Sample Data
 
@@ -186,7 +186,7 @@ If you use didTEnets in your research, please cite:
 
 ## Contributing
 
-Contributions are welcome! Please see the [contributing guidelines](CONTRIBUTING.md) for details.
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## License
 
