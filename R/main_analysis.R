@@ -42,7 +42,7 @@
 #' }
 #'
 #' @export
-#' @importFrom dplyr %>% filter group_by summarise mutate
+#' @importFrom dplyr %>% filter group_by summarise mutate arrange
 run_complete_tedid_analysis <- function(
   tickers = c("^GSPC" = "USA", "^FTSE" = "GBR", "^GDAXI" = "DEU", 
               "^FCHI" = "FRA", "^N225" = "JPN", "^AXJO" = "AUS"),

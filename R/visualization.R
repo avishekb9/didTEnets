@@ -176,7 +176,7 @@ create_te_heatmaps <- function(te_matrices,
 #'
 #' @export
 #' @importFrom ggplot2 ggplot aes geom_line geom_vline geom_hline geom_ribbon scale_color_manual scale_fill_manual labs theme_minimal theme element_text
-#' @importFrom dplyr %>% group_by summarise mutate select pivot_wider
+#' @importFrom dplyr %>% group_by summarise mutate select
 #' @importFrom tidyr pivot_wider
 visualize_tedid_results <- function(tedid_dataset, 
                                    crisis_start = as.Date("2020-03-01"),
